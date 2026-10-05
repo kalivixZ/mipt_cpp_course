@@ -58,7 +58,7 @@ bool IsProcessStart(const Event& event){
     return false;
 }
 bool IsFileWrite(const Event& event){
-        if (event.type=="file_write" || event.type=="file_create" || event.type=="file_move"){return true;}
+        if (event.type=="file_write"){return true;}
     return false;
 }
 bool IsNetConnect(const Event& event){
@@ -82,19 +82,29 @@ bool PathEndsWith(const Event& event, const std::string& suffix){
 }
 
 std::string NormalizePath(const std::string& path){
+    std::string path_toupper;
     std::string new_path;
     for (std::size_t i=0;i<path.size();i++){
-        if (path.compare(i,6,"%TEMP%")==0){
+        char symbol=path[i];
+        if (symbol=='/' || symbol=='\\' || symbol=='%'){path_toupper+=symbol;continue;}
+        symbol=static_cast<char>(std::toupper(static_cast<unsigned char>(symbol)));
+        path_toupper+=symbol;
+    }
+    /*    CHECK(NormalizePath("%TMP%\\A.JS").find("\\appdata\\local\\temp\\") !=
+          std::string::npos);*/
+    
+    for (std::size_t i=0;i<path_toupper.size();i++){
+        if (path_toupper.compare(i,6,"%TEMP%")==0){
             new_path+="\\appdata\\local\\temp\\";
             i+=6;
             continue;
         }
-        if (path.compare(i,5,"%TMP%")==0){
+        if (path_toupper.compare(i,5,"%TMP%")==0){
             new_path+="\\appdata\\local\\temp\\";
             i+=5;
             continue; //если конец строки
         }
-        char symbol=path[i];
+        char symbol=path_toupper[i];
         if (symbol=='/' || symbol =='\\'){
             if (new_path.empty() || new_path.back() != '\\'){new_path+='\\';}else{continue;}
         }else{

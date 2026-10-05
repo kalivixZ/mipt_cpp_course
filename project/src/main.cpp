@@ -44,7 +44,14 @@ int main(int argc, char** argv) {
         return 2;
     }
 
+    std::shared_ptr<EventNode> node = std::make_shared<EventNode>();
+    auto node1 = node;
+    auto node2 = node;
 
+    std::unique_ptr<EventNode> unique_node = std::make_unique<EventNode>();
+    auto node3 = unique_node;
+
+    std::unique_ptr<EventNode> unique_node2 = std::make_unique<EventNode>();
 
     long long lines = 0;
     long long comments = 0;
