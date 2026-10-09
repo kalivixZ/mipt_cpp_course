@@ -1,4 +1,5 @@
 #include "event.h"
+
 namespace nano_edr{
 
 Timestamp ParseTimestamp(const EventParts& parts){
