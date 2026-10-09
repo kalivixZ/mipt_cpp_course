@@ -3,15 +3,17 @@
 #include "agent.h"
 #include <iostream>
 #include <print>
+#include "parse.h"
 #include "rules.h"
+#include <fstream>
 namespace nano_edr{
-
 Agent::Agent(std::size_t window_size, bool quiet)
 : window_(window_size),
 quiet_(quiet)
 {}
 void Agent::HandleEvent(const Event& event){
-    const std::size_t detect_cnt = CheckRules(event, all_rules, rules_cnt);
+    event_cnt_++;
+    const std::size_t detect_cnt = CheckRules(event, all_rules_, rules_cnt_);
     bool flag=false;
     for (auto&[type,cnt]:all_types_){
         if (event.type()==type){
@@ -23,22 +25,56 @@ void Agent::HandleEvent(const Event& event){
         all_types_.push_back({event.type(),1});
     }
     if (detect_cnt!=0 && !quiet_){
-        if (window_.size()==1){
-            const Event& one_node=window_.head->event;
-            std::cout<<one_node<<std::endl;
-        }else{
-            const EventNode* ctx = window_.head;
-            for (int i=0;i<window_.size()-2;i++){
+        if (window_.size()>0){
+            if (window_.size()==1){
+                const Event& one_node=window_.head()->event;
+                std::cout<<one_node<<std::endl;
+            }else{
+                const EventNode* ctx = window_.head();
+                for (int i=0;i<window_.size()-2;i++){
+                    ctx=ctx->next;
+                }
+                std::print("[CTX] -2: {}\n",ToString(ctx->event));
                 ctx=ctx->next;
+                std::print("[CTX] -1: {}\n",ToString(ctx->event));
             }
-            std::print("[CTX] -2:"+ToString(*ctx));
-            ctx=ctx->next;
-            std::print("[CTX] -1:"+ToString(*ctx));
         }
     }
     window_.PushBack(event);
 
 
 }
-//void PrintSummary() const;  // сводка в конце прогона
+
+void Agent::PrintSummary() const {
+    if (quiet_) {
+        return;
+    }
+    std::print("всего событий: {}, каждого типа:\n",event_cnt_);
+
+    for (const auto& [type, cnt] : all_types_) {
+        std::print("{} : {}\n",type,cnt);
+    }
+}
+
+FileSource::FileSource(const std::string& path)
+: path_(path)
+{}
+void FileSource::Run(Agent* agent){
+    std::ifstream log(path_);
+    std::string line;
+    while (std::getline(log,line)){
+        lines_++;
+        if (IsBlankOrComment(&line)){
+            comments_++;
+            continue;
+        }
+
+        EventParts out;
+        if (!ParseEventParts(line, &out)){
+            continue;
+        }
+        Event ev=Event(out);
+        agent->HandleEvent(ev);
+    }
+}
 }
