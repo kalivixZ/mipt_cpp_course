@@ -64,7 +64,7 @@ void FileSource::Run(Agent* agent){
     std::string line;
     while (std::getline(log,line)){
         lines_++;
-        if (IsBlankOrComment(&line)){
+        if (IsBlankOrComment(line)){
             comments_++;
             continue;
         }

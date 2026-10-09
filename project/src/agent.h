@@ -1,6 +1,7 @@
 #include "event_list.h"
 #include <vector>
 #include "rules.h" 
+#include "agent_rules.h"
 namespace nano_edr{
 
 class Agent {
