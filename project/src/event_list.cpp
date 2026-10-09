@@ -33,10 +33,7 @@ void EventList::PopFront(){
     }
     EventNode* last_head=head_;
     if (size_==1){
-        head_=nullptr;
-        tail_=nullptr;
-        delete last_head;
-        size_=0;
+        Clear();
         return;
 
     }
