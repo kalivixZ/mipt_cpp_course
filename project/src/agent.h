@@ -1,5 +1,6 @@
 #include "event_list.h"
 #include <vector>
+#include "rules.h"
 namespace nano_edr{
 
 class Agent {
@@ -11,9 +12,11 @@ class Agent {
  private:
     EventList window_;  // последние события, не больше window_size
     bool quiet_;
-    long long lines_;
-    long long comments;
+    long long lines_{};
+    long long comments{};
     std::vector<std::pair<std::string,std::size_t>> all_types_;
+    const nano_edr::Rule* all_rules= AgentRules();
+    const std::size_t rules_cnt = AgentRuleCount();
 
 
 
