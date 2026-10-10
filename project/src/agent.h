@@ -1,11 +1,14 @@
 #include "event_list.h"
 #include <vector>
+#include "os_handle.h"
 #include "rules.h" 
 #include "agent_rules.h"
+#include "os.h"
 namespace nano_edr{
 
 class Agent {
  public:
+    static void Trampoline(const os_event* ev, void* ctx) noexcept;
     Agent(std::size_t window_size, bool quiet);  // из --window-size и --quiet
     void HandleEvent(const Event& event);
     void PrintSummary() const;  // сводка в конце прогона
@@ -30,5 +33,13 @@ private:
     std::string path_;
     inline static long long lines_;
     inline static long long comments_;
+};
+class OsSource {
+ public:
+    explicit OsSource(const std::string& config_path);  // создаёт OsHandle
+    void Run(Agent* agent);  // Subscribe, Start, Wait в цикле
+private:
+    Agent* agent_;
+    OsHandle handle_;
 };
 }
