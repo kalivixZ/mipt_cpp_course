@@ -63,10 +63,11 @@ FileSource::FileSource(const std::string& path)
 {}
 void FileSource::Run(Agent* agent){
     std::ifstream log(path_);
+    if (!log){throw std::invalid_argument("");}
     std::string line;
     while (std::getline(log,line)){
         lines_++;
-        if (IsBlankOrComment(line)){
+        if (IsBlankOrComment(&line)){
             comments_++;
             continue;
         }
@@ -99,8 +100,8 @@ void Agent::Trampoline(const os_event* ev, void* ctx) noexcept{
         }
 }
 OsSource::OsSource(const std::string& config_path)
-: handle_(config_path),
-agent_(nullptr)
+: agent_(nullptr),
+handle_(config_path)
 {}
 void OsSource::Run(Agent* agent){
     agent_=agent;
