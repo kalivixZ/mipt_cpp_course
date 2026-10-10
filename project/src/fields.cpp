@@ -99,12 +99,12 @@ std::string NormalizePath(const std::string& path){
     for (std::size_t i=0;i<path_toupper.size();i++){
         if (path_toupper.compare(i,6,"%TEMP%")==0){
             new_path+="\\appdata\\local\\temp\\";
-            i+=6;
+            i+=5;
             continue;
         }
         if (path_toupper.compare(i,5,"%TMP%")==0){
             new_path+="\\appdata\\local\\temp\\";
-            i+=5;
+            i+=4;
             continue; //если конец строки
         }
         char symbol=path_toupper[i];

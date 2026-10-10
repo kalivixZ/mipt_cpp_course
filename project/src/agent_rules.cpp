@@ -38,8 +38,9 @@ bool HiddenPowershell(const Event& event){
     return true; 
 }
 bool AutostartWrite(const Event& event){
-    if (!IsFileWrite(event)){return false;}
-    
+    if (!(event.type()=="file_create" || event.type()=="file_write" || event.type()=="file_move")){
+        return false;
+    }
     const std::string* key;
     if (event.type()=="file_move"){
         key=FindField(event,"to");
@@ -52,7 +53,9 @@ bool AutostartWrite(const Event& event){
     return true;
 }
 bool RansomExtension(const Event& event){
-    if (!IsFileWrite(event)){return false;}
+    if (!(event.type()=="file_create" || event.type()=="file_write" || event.type()=="file_move")){
+        return false;
+    }
     
     const std::string* key;
     if (event.type()=="file_move"){

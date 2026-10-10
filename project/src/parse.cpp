@@ -63,7 +63,7 @@ bool ParsePair(const std::string& line, std::size_t* pos, Field* out) {
 
 bool IsBlankOrComment(const std::string& line) {
     if (line.empty()) {
-        return false;
+        return true;;
     }
 
     std::size_t pos = 0;

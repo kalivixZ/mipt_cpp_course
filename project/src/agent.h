@@ -16,8 +16,8 @@ class Agent {
  private:
     EventList window_;  // последние события, не больше window_size
     bool quiet_;
-    inline static long long event_cnt_;
-    inline static std::vector<std::pair<std::string,std::size_t>> all_types_;
+    long long event_cnt_;
+    std::vector<std::pair<std::string,std::size_t>> all_types_;
     const nano_edr::Rule* all_rules_= AgentRules();
     const std::size_t rules_cnt_ = AgentRuleCount();
     
