@@ -81,7 +81,10 @@ bool ParseEventParts(const std::string& line, EventParts* out) {
 
     *out = EventParts{};
     std::size_t pos = 0;
-
+    bool fts=false;
+    bool fpid=false;
+    bool ftype=false;
+    
     while (pos < line.size()) {
         while (pos < line.size() && IsSpace(line[pos])) {
             ++pos;
@@ -94,13 +97,15 @@ bool ParseEventParts(const std::string& line, EventParts* out) {
         if (!ParsePair(line, &pos, &field)) {
             return false;
         }
-
-        if (field.key == "ts") {
+        if (field.key == "ts" && !fts) {
             out->ts = field.value;
-        } else if (field.key == "type") {
+            fts=true;
+        } else if (field.key == "type" && !ftype) {
             out->type = field.value;
-        } else if (field.key == "pid") {
+            ftype=true;
+        } else if (field.key == "pid" && !fpid) {
             out->pid = field.value;
+            fpid=true;
         } else {
             out->fields.push_back(field);
         }
