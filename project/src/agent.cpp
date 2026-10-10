@@ -1,6 +1,7 @@
 #include "event.h"
 #include "event_list.h"
 #include "agent.h"
+#include <exception>
 #include <iostream>
 #include <print>
 #include "parse.h"
@@ -63,7 +64,7 @@ FileSource::FileSource(const std::string& path)
 {}
 void FileSource::Run(Agent* agent){
     std::ifstream log(path_);
-    if (!log){throw std::invalid_argument("");}
+    if (!log){throw std::invalid_argument("ошибка чтения "+path_);}
     std::string line;
     while (std::getline(log,line)){
         lines_++;
@@ -76,8 +77,12 @@ void FileSource::Run(Agent* agent){
         if (!ParseEventParts(line, &out)){
             continue;
         }
-        Event ev=Event(out);
-        agent->HandleEvent(ev);
+        try{
+            Event ev=Event(out);
+            agent->HandleEvent(ev);
+        }catch(const std::exception &e){
+            continue;
+        }
     }
 }
 void Agent::Trampoline(const os_event* ev, void* ctx) noexcept{
@@ -88,16 +93,14 @@ void Agent::Trampoline(const os_event* ev, void* ctx) noexcept{
             parts.ts=std::to_string(ev->ts);
             if (ev->pid==0){
                 parts.pid="";
-            }else{parts.pid=std::to_string(ev->pid)};
+            }else{parts.pid=std::to_string(ev->pid);}
             parts.type=ev->type;
             for (std::size_t i=0;i<ev->field_count;i++){
                 parts.fields.push_back({ev->fields[i].key,ev->fields[i].value});
             }
             Event event(parts);
             agent->HandleEvent(event);}
-        } catch (const std::exception &e) {
-            std::print("ошибка: {}\n",e.what());
-        }
+        } catch (...) {}
 }
 OsSource::OsSource(const std::string& config_path)
 : agent_(nullptr),
