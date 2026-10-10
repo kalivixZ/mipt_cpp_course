@@ -55,3 +55,4 @@ void EventList::Clear(){
 EventList::~EventList(){
     Clear();
 }
+}

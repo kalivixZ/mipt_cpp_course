@@ -19,8 +19,8 @@ Timestamp ParseTimestamp(const EventParts& parts){
 }
 
 Event::Event(const EventParts& parts)
-    : raw_ts_(parts.ts),
-    ts_(ParseTimestamp(parts)),
+    : ts_(ParseTimestamp(parts)),
+    raw_ts_(parts.ts),
     type_(parts.type),
     pid_(parts.pid),
     fields_(parts.fields)

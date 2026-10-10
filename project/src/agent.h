@@ -31,8 +31,8 @@ class FileSource {
     void Run(Agent* agent);  // строка → EventParts → Event → HandleEvent
 private:
     std::string path_;
-    inline static long long lines_;
-    inline static long long comments_;
+    long long lines_;
+    long long comments_;
 };
 class OsSource {
  public:

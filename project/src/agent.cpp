@@ -34,7 +34,7 @@ void Agent::HandleEvent(const Event& event){
                 std::cout<<one_node<<std::endl;
             }else{
                 const EventNode* ctx = window_.head();
-                for (int i=0;i<window_.size()-2;i++){
+                for (std::size_t i=0;i<window_.size()-2;i++){
                     ctx=ctx->next;
                 }
                 std::print("[CTX] -2: {}\n",ToString(ctx->event));
@@ -68,10 +68,10 @@ void FileSource::Run(Agent* agent){
     std::string line;
     while (std::getline(log,line)){
         lines_++;
-        if (IsBlankOrComment(&line)){
+        if (IsBlankOrComment(line)){
             comments_++;
             continue;
-        }
+        } 
 
         EventParts out;
         if (!ParseEventParts(line, &out)){
@@ -80,7 +80,7 @@ void FileSource::Run(Agent* agent){
         try{
             Event ev=Event(out);
             agent->HandleEvent(ev);
-        }catch(const std::exception &e){
+        }catch(...){
             continue;
         }
     }
