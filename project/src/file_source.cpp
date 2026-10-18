@@ -1,7 +1,9 @@
 #include "file_source.h"
+
 #include <fstream>
 #include <stdexcept>
 #include <string>
+
 #include "event.h"
 #include "parse.h"
 namespace nano_edr {

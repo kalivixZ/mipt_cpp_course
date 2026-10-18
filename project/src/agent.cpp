@@ -1,5 +1,7 @@
 #include "agent.h"
+
 #include <print>
+
 #include "event.h"
 #include "event_list.h"
 namespace nano_edr {

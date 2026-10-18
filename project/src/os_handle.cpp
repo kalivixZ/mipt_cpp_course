@@ -1,4 +1,5 @@
 #include "os_handle.h"
+
 #include <stdexcept>
 #include <string>
 namespace nano_edr {

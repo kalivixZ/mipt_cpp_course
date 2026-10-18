@@ -1,5 +1,7 @@
 #include "os_source.h"
+
 #include <stdexcept>
+
 #include "os.h"
 namespace nano_edr {
 OsSource::OsSource(const std::string& config_path)

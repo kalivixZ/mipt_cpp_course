@@ -1,4 +1,5 @@
 #include "event.h"
+
 #include <charconv>
 #include <stdexcept>
 namespace nano_edr {

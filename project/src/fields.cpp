@@ -1,5 +1,7 @@
 #include "fields.h"
+
 #include <stdexcept>
+
 #include "event.h"
 #include "text.h"
 namespace nano_edr {

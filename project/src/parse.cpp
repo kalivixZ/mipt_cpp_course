@@ -1,6 +1,8 @@
 #include "parse.h"
+
 #include <cstddef>
 #include <string>
+
 #include "event.h"
 
 namespace nano_edr {
