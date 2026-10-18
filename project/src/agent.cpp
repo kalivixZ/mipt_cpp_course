@@ -42,7 +42,7 @@ void Agent::HandleEvent(const Event& event) {
     window_.PushBack(event);
     last2_event = last1_event;
     last1_event = window_.back();
-}
+}й
 
 void Agent::PrintSummary() const {
     if (quiet_) {
