@@ -17,7 +17,6 @@ void FileSource::Run(IEventHandler* handler) {
     }
     std::string line;
     while (std::getline(log, line)) {
-        lines_++;
         if (IsBlankOrComment(line)) {
             handler->OnSkipped();
             continue;

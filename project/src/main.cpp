@@ -61,13 +61,8 @@ int main(int argc, char** argv) {
             source = std::make_unique<nano_edr::OsSource>(log_path);
         }
         source->Run(&agent);
-        agent.PrintSummary();
         if (!quiet) {
-            auto* file_source = dynamic_cast<nano_edr::FileSource*>(source.get());
-            if (file_source) {
-                std::print("строк: {}, из них комментариев: {}\n", file_source->lines(), file_source->comments());
-                std::print("битых строк: {}, отвергнутых событий: {}\n", file_source->bad_lines(), file_source->rej_events());
-            }
+            agent.PrintSummary();
         }
     } catch (const std::exception& e) {
         std::print(stderr, "ошибка: {}", e.what());
