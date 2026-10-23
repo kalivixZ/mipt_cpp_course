@@ -10,7 +10,6 @@
 namespace nano_edr {
 class Agent : public IEventHandler {
  public:
-    static void Trampoline(const os_event* ev, void* ctx) noexcept;
     Agent(std::size_t window_size, bool quiet);  // из --window-size и --quiet
     void HandleEvent(const Event& event) override;
     void PrintSummary() const;  // сводка в конце прогона

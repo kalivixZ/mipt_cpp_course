@@ -5,7 +5,6 @@
 #include "agent_rules.h"
 #include "event.h"
 #include "event_list.h"
-#include "event_source.h"
 namespace nano_edr {
 Agent::Agent(std::size_t window_size, bool quiet)
     : window_(window_size),
@@ -50,34 +49,12 @@ void Agent::PrintSummary() const {
         return;
     }
     std::print("всего событий: {}, каждого типа:\n", event_cnt_);
-
+    std::print("пустых строк или комментариев {}, из них битых{}\n",skipped_line_,broken_line_);
     for (const auto& [type, cnt] : all_types_) {
         std::print("{} : {}\n", type, cnt);
     }
     for (std::size_t i = 0; i < engine_.size(); ++i) {
         std::print("{}  {}\n", engine_.rule(i).id(), engine_.rule(i).hits());
-    }
-}
-void Agent::Trampoline(const os_event* ev, void* ctx) noexcept {
-    try {
-        if (ev != nullptr && ctx != nullptr) {
-            IEventHandler* agent = static_cast<IEventHandler*>(ctx);
-            EventParts parts;
-            parts.ts = std::to_string(ev->ts);
-            if (ev->pid == 0) {
-                parts.pid = "";
-            } else {
-                parts.pid = std::to_string(ev->pid);
-            }
-            parts.type = ev->type ? ev->type : "";
-            for (std::size_t i = 0; i < ev->field_count; i++) {
-                parts.fields.push_back({ev->fields[i].key, ev->fields[i].value});
-            }
-            Event event(parts);
-            agent->HandleEvent(event);
-        }
-    } catch (...) {
-        std::print(stderr, "ошибка обработки события\n");
     }
 }
 
