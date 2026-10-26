@@ -8,6 +8,7 @@
 #include "rule.h"
 #include "rule_engine.h"
 namespace nano_edr {
+static std::size_t first_print=0;
 class Agent : public IEventHandler {
  public:
     Agent(std::size_t window_size, bool quiet);  // из --window-size и --quiet
