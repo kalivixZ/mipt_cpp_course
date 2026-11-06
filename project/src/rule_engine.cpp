@@ -1,0 +1,20 @@
+#include "rule_engine.h"
+namespace nano_edr {
+
+void RuleEngine::AddRule(std::unique_ptr<IRule> rule) {
+    rules_.push_back(std::move(rule));
+}
+
+std::size_t RuleEngine::ProcessEvent(const Event& event, std::vector<const IRule*>* fired) {
+    std::size_t detect_cnt = 0;
+    for (const auto& rule : rules_) {
+        if (rule->Check(event)) {
+            ++detect_cnt;
+            if (fired) {
+                (*fired).push_back(rule.get());
+            }
+        }
+    }
+    return detect_cnt;
+}
+}  // namespace nano_edr
