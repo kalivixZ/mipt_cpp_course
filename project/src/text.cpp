@@ -3,12 +3,12 @@
 #include <cctype>
 namespace nano_edr {
 std::string NormalizeLine(const std::string& initial_line) {
-    std::string line_toupper;
+    std::string line_tolower;
     for (std::size_t i = 0; i < initial_line.size(); ++i) {
         char curr_char = initial_line[i];
-        line_toupper += static_cast<char>(std::toupper(static_cast<unsigned char>(curr_char)));
+        line_tolower += static_cast<char>(std::tolower(static_cast<unsigned char>(curr_char)));
     }
-    return line_toupper;
+    return line_tolower;
 }
 
 bool LineEqual(const std::string& a, const std::string& b) {

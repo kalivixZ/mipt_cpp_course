@@ -6,21 +6,24 @@
 #include "event.h"
 #include "event_list.h"
 namespace nano_edr {
-Agent::Agent(std::size_t window_size, bool quiet)
-    : window_(window_size),
-      quiet_(quiet),
-      engine_() { RegisterAgentRules(&engine_); }
+Agent::Agent(bool quiet)
+    :quiet_(quiet),
+    engine_() { RegisterAgentRules(&engine_); }
 void Agent::HandleEvent(const Event& event) {
+    WindowEntry entry{event.ts(), event.type(), event.pid()};
     std::size_t detect_cnt;
     event_cnt_++;
     detect_cnt = engine_.ProcessEvent(event, &fired);
     if (detect_cnt != 0 && !quiet_) {
         if (window_.size() > 0) {
-            if (window_.size() == 1 && last1_event != nullptr) {
-                std::print("[CTX] -1: {}\n", ToString(last1_event->event));
-            } else if (window_.size() >= 2 && last1_event != nullptr && last2_event != nullptr) {
-                std::print("[CTX] -2: {}\n", ToString(last2_event->event));
-                std::print("[CTX] -1: {}\n", ToString(last1_event->event));
+            if (window_.size() == 1) {
+                const WindowEntry& last_entry = window_[window_.size() - 1];
+                std::print("[CTX] -1: {} {} pid={}\n", last_entry.ts.ms, last_entry.type, last_entry.pid);
+            } else if (window_.size() >= 2) {
+                const WindowEntry& last1_entry = window_[window_.size() - 2];
+                const WindowEntry& last2_entry = window_[window_.size() - 1];
+                std::print("[CTX] -2: {} {} pid={}\n", last1_entry.ts.ms, last1_entry.type, last1_entry.pid);
+                std::print("[CTX] -1: {} {} pid={}\n", last2_entry.ts.ms, last2_entry.type, last2_entry.pid);
             }
         }
     }
@@ -39,9 +42,7 @@ void Agent::HandleEvent(const Event& event) {
     if (!flag) {
         all_types_.push_back({event.type(), 1});
     }
-    window_.PushBack(event);
-    last2_event = last1_event;
-    last1_event = window_.back();
+    window_.PushBack(entry);
 }
 
 void Agent::PrintSummary() const {
