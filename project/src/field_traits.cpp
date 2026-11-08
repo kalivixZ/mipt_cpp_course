@@ -3,7 +3,8 @@
 #include "text.h"
 namespace nano_edr {
 
-bool FieldTraits<std::string>::Parse(const std::string&, std::string*) {
+bool FieldTraits<std::string>::Parse(const std::string&text, std::string*out) {
+    *out=text;
     return true;
 }
 bool FieldTraits<uint64_t>::Parse(const std::string& text, uint64_t* out) {

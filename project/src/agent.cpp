@@ -57,6 +57,7 @@ void Agent::PrintSummary() const {
     for (std::size_t i = 0; i < engine_.size(); ++i) {
         std::print("{}  {}\n", engine_.rule(i).id(), engine_.rule(i).hits());
     }
+    std::print("[STAT] в окне {} из {} мест\n",window_.size(),window_.capacity());
 }
 
 void Agent::OnSkipped() {
