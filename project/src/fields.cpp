@@ -1,7 +1,7 @@
 #include "fields.h"
 
 #include <stdexcept>
-
+#include "field_traits.h"
 #include "event.h"
 #include "text.h"
 namespace nano_edr {
@@ -38,31 +38,15 @@ bool GetIntField(const Event& event, const std::string& key, uint64_t* out) {
     if (!p) {
         return false;
     }  //если поле отсутствует
-    else {
-        uint64_t temp_out;  //чтобы не записать НЕЧТОО по указателю
-        const auto [ptr, ec] = std::from_chars((*p).data(), (*p).data() + (*p).size(), temp_out);
-        if (ec != std::errc() || (ptr != (*p).data() + (*p).size())) {
-            return false;
-        }  //учитывает переполнение или если не разобралось
-        *out = temp_out;
-        return true;
-    }
+    return FieldTraits<uint64_t>::Parse(*p, out);
+
 }
 
 uint64_t GetIntField(const Event& event, const std::string& key,
                      uint64_t fallback) {
-    const std::string* p = nano_edr::FindField(event, key);
-    if (!p) {
-        return fallback;
-    }  //если поле отсутствует
-    else {
-        uint64_t temp_fallback;
-        const auto [ptr, ec] = std::from_chars((*p).data(), (*p).data() + (*p).size(), temp_fallback);
-        if (ec != std::errc() || (ptr != (*p).data() + (*p).size())) {
-            return fallback;
-        }  //учитывает переполнение или если не разобралось
-        return temp_fallback;
-    }
+    auto new_fallback=GetFieldOr<uint64_t>(event,key,fallback);
+    return new_fallback;
+    
 }
 
 bool IsProcessStart(const Event& event) {
