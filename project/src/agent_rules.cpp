@@ -9,7 +9,7 @@
 #include "rule.h"
 namespace nano_edr {
 
-void RegisterAgentRules(RuleEngine* engine) {
+void RegisterAgentRule1(RuleEngine* engine) {
     auto rule1 = MakeRule<MatchRule>("script_host_from_temp", Severity::kHigh);
 
     rule1->AddCondition(MakeCondition(AllOfStatic{
@@ -25,8 +25,8 @@ void RegisterAgentRules(RuleEngine* engine) {
 
     rule1->AddAction("kill_process");
     engine->AddRule(std::move(rule1));
-
-
+    }
+void RegisterAgentRule2(RuleEngine* engine) {
     auto rule2 = MakeRule<MatchRule>("lolbin_download", Severity::kHigh);
 
     rule2->AddCondition(MakeCondition(AllOfStatic{
@@ -42,7 +42,8 @@ void RegisterAgentRules(RuleEngine* engine) {
 
     rule2->AddAction("kill_process");
     engine->AddRule(std::move(rule2));
-
+    }
+void RegisterAgentRule3(RuleEngine* engine) {
 
     auto rule3 = MakeRule<MatchRule>("hidden_powershell", Severity::kMedium);
 
@@ -59,7 +60,8 @@ void RegisterAgentRules(RuleEngine* engine) {
 
     rule3->AddAction("kill_process");
     engine->AddRule(std::move(rule3));
-
+    }
+void RegisterAgentRule4(RuleEngine* engine) {
 
     auto rule4 = MakeRule<MatchRule>("autostart_write", Severity::kHigh);
 
@@ -79,7 +81,8 @@ void RegisterAgentRules(RuleEngine* engine) {
 
     rule4->AddAction("quarantine_file");
     engine->AddRule(std::move(rule4));
-
+    }
+void RegisterAgentRule5(RuleEngine* engine) {
 
     auto rule5 = MakeRule<MatchRule>("ransom_extension", Severity::kCritical);
 
@@ -93,8 +96,8 @@ void RegisterAgentRules(RuleEngine* engine) {
 
     rule5->AddAction("quarantine_file");
     engine->AddRule(std::move(rule5));
-
-
+}
+void RegisterAgentRule6(RuleEngine* engine) {
     auto rule6 = MakeRule<SequenceRule>("script_host_beacon", Severity::kCritical, 10000);
 
     rule6->SetFirst(MakeCondition(AllOfStatic{
@@ -130,6 +133,15 @@ void RegisterAgentRules(RuleEngine* engine) {
     mass_write->AddAction("kill_process");
     mass_write->AddAction("quarantine_file");
     engine->AddRule(std::move(mass_write));
+    
+}
 
+void RegisterAgentRules(RuleEngine* engine) {
+    RegisterAgentRule1(engine);
+    RegisterAgentRule2(engine);
+    RegisterAgentRule3(engine);
+    RegisterAgentRule4(engine);
+    RegisterAgentRule5(engine);
+    RegisterAgentRule6(engine);
 }
 }  // namespace nano_edr

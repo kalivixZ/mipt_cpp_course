@@ -44,10 +44,6 @@ bool GetIntField(const Event& event, const std::string& key, uint64_t* out) {
 
 uint64_t GetIntField(const Event& event, const std::string& key,
                      uint64_t fallback) {
-    const std::string* p = nano_edr::FindField(event, key);
-    if (!p) {
-        return fallback;
-    }  //если поле отсутствует
     auto new_fallback=GetFieldOr<uint64_t>(event,key,fallback);
     return new_fallback;
     

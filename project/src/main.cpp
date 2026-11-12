@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
             std::print("отфильтровано событий: {}\n",result);
         }
     } catch (const std::exception& e) {
-        std::print(stderr, "ошибка: {}", e.what());
+        std::print(stderr, "ошибка: {}\n", e.what());
         return 1;
     }
     return 0;

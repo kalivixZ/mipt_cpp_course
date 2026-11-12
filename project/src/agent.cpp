@@ -1,7 +1,7 @@
 #include "agent.h"
 
 #include <print>
-
+#include <algorithm>
 #include "agent_rules.h"
 #include "event.h"
 #include "event_list.h"
@@ -15,16 +15,9 @@ void Agent::HandleEvent(const Event& event) {
     event_cnt_++;
     detect_cnt = engine_.ProcessEvent(event, &fired);
     if (detect_cnt != 0 && !quiet_) {
-        if (window_.size() > 0) {
-            if (window_.size() == 1) {
-                const WindowEntry& last_entry = window_[window_.size() - 1];
-                std::print("[CTX] -1: {} {} pid={}\n", last_entry.ts.ms, last_entry.type, last_entry.pid);
-            } else if (window_.size() >= 2) {
-                const WindowEntry& last1_entry = window_[window_.size() - 2];
-                const WindowEntry& last2_entry = window_[window_.size() - 1];
-                std::print("[CTX] -2: {} {} pid={}\n", last1_entry.ts.ms, last1_entry.type, last1_entry.pid);
-                std::print("[CTX] -1: {} {} pid={}\n", last2_entry.ts.ms, last2_entry.type, last2_entry.pid);
-            }
+        for (std::size_t i = window_.size()- std::min(window_.size(),std::size_t(2));i<window_.size();++i){
+            const WindowEntry& entry = window_[i];
+            std::print("[CTX] -{}: {} {} pid={}\n",window_.size()-i, entry.ts.ms, entry.type, entry.pid);
         }
     }
     for (const auto& detected : fired) {
@@ -49,7 +42,7 @@ void Agent::PrintSummary() const {
     if (quiet_) {
         return;
     }
-    std::print("пустых строк или комментариев {}, из них битых {}\n",skipped_line_,broken_line_);
+    std::print("пустых строк или комментариев {}, битых строк{}\n",skipped_line_,broken_line_);
     std::print("всего событий: {}, каждого типа:\n", event_cnt_);
     for (const auto& [type, cnt] : all_types_) {
         std::print("{} : {}\n", type, cnt);

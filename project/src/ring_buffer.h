@@ -56,8 +56,8 @@ class RingBuffer {
             return index_!=other.index_;
         }
     private:
-        const RingBuffer* buffer_;
-        std::size_t index_;
+        const RingBuffer* buffer_=nullptr;
+        std::size_t index_=0;
     };
 
     // Дописывает элемент. Если буфер полон, самый старый затирается — окно,

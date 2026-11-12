@@ -12,9 +12,15 @@ std::string NormalizeLine(const std::string& initial_line) {
 }
 
 bool LineEqual(const std::string& a, const std::string& b) {
-    const std::string a_normalize = NormalizeLine(a);
-    const std::string b_normalize = NormalizeLine(b);
-    return a_normalize == b_normalize;
+    if (a.size() != b.size()) {
+        return false;
+    }
+    for (std::size_t i=0;i<a.size();++i){
+        if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i]))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool LineContains(const std::string& a, const std::string& b) {
