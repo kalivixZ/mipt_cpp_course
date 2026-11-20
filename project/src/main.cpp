@@ -1,4 +1,3 @@
-#include <charconv>
 #include <cstdio>
 #include <print>
 #include <string>
@@ -8,7 +7,6 @@
 #include "os_source.h"
 
 int main(int argc, char** argv) {
-    std::size_t value = 64;
     bool quiet = false;
     bool file = false;
     std::string pid;
@@ -16,18 +14,7 @@ int main(int argc, char** argv) {
     std::string log_path;
     for (int i = 1; i < argc; i++) {
         const std::string arg = argv[i];
-        if (arg == "--window-size") {
-            if (i + 1 >= argc) {
-                std::print(stderr, "нет значения после {}\n", arg);
-                return 2;
-            }
-            const std::string value_str = argv[++i];
-            auto [ptr, ec] = std::from_chars(value_str.data(), value_str.data() + value_str.size(), value);
-            if (ec != std::errc() || ptr != value_str.data() + value_str.size()) {
-                std::print(stderr, "неправильный аргумент: {}\n", value_str);
-                return 2;
-            }
-        } else if (arg == "--quiet") {
+        if (arg == "--quiet") {
             quiet = true;
         } else if (arg == "--file") {
             file = true;
@@ -66,7 +53,7 @@ int main(int argc, char** argv) {
     }
     //агент и разделение на источники
     try {
-        nano_edr::Agent agent(value, quiet);
+        nano_edr::Agent agent(quiet);
 
         nano_edr::PidFilter filter_bef_agent(&agent,pid);
         std::unique_ptr<nano_edr::IEventSource> source;
@@ -86,7 +73,7 @@ int main(int argc, char** argv) {
             std::print("отфильтровано событий: {}\n",result);
         }
     } catch (const std::exception& e) {
-        std::print(stderr, "ошибка: {}", e.what());
+        std::print(stderr, "ошибка: {}\n", e.what());
         return 1;
     }
     return 0;
