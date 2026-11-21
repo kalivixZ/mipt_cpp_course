@@ -1,5 +1,6 @@
 
 #include "agent_rules.h"
+#include "entity_model.h"
 #include "make_rule.h"
 #include "combinators.h"
 #include <vector>
@@ -135,13 +136,63 @@ void RegisterAgentRule6(RuleEngine* engine) {
     engine->AddRule(std::move(mass_write));
     
 }
+void RegisterAgentRule8(RuleEngine *engine,const EntityModel* model){
+auto shell = MakeRule<SequenceRule>(
+        "shell_spawns_script_host", Severity::kHigh, 30000);
 
-void RegisterAgentRules(RuleEngine* engine) {
-    RegisterAgentRule1(engine);
-    RegisterAgentRule2(engine);
-    RegisterAgentRule3(engine);
-    RegisterAgentRule4(engine);
-    RegisterAgentRule5(engine);
-    RegisterAgentRule6(engine);
+    shell->SetFirst(MakeCondition(AllOfStatic{
+        EventTypeIs(std::vector<EventType>{EventType::kProcessStart}),
+        AnyOfStatic{
+            FieldEndsWith("image", "cmd.exe"),
+            FieldEndsWith("image", "powershell.exe"),
+            FieldEndsWith("image", "pwsh.exe")
+        }
+    }));
+
+    shell->SetSecond(MakeCondition(AllOfStatic{
+        EventTypeIs(std::vector<EventType>{EventType::kProcessStart}),
+        AnyOfStatic{
+            FieldEndsWith("image", "wscript.exe"),
+            FieldEndsWith("image", "cscript.exe")
+        }
+    }));
+
+    shell->set_child_of_prev(true);
+    shell->SetModel(model);
+    shell->AddAction("kill_process");
+
+    engine->AddRule(std::move(shell));
+}
+void RegisterAgentRule9(RuleEngine* engine,const EntityModel* model){
+    auto dropped = MakeRule<LambdaRule>(
+    "spawned_from_dropped_file", Severity::kHigh,
+    [model](const Event& event) {
+        if (event.event_type() != EventType::kProcessStart) {
+            return false;
+        }
+        const FileRecord* source = model->FindSpawnSource(event.pid());
+        if (source){
+            if (!(source->writer_pid.empty()) && source->writer_pid!=event.pid()){
+                return true;
+            }
+        }
+        return false;
+    });
+dropped->AddAction("kill_process");
+dropped->AddAction("quarantine_file");
+engine->AddRule(std::move(dropped));
+}
+
+RuleEngine BuildAgentRules(const EntityModel* model) {
+    RuleEngine engine_;
+    RegisterAgentRule1(&engine_);
+    RegisterAgentRule2(&engine_);
+    RegisterAgentRule3(&engine_);
+    RegisterAgentRule4(&engine_);
+    RegisterAgentRule5(&engine_);
+    RegisterAgentRule6(&engine_);
+    RegisterAgentRule8(&engine_,model);
+    RegisterAgentRule9(&engine_,model);
+    return engine_;
 }
 }  // namespace nano_edr

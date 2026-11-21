@@ -16,7 +16,8 @@ struct WindowEntry {
 class Agent : public IEventHandler {
  public:
    static constexpr std::size_t kWindowCapacity = 256;
-    explicit Agent(bool quiet);
+    explicit Agent(bool quiet,uint64_t dedup_period_ms=10000);
+    void Subscribe(AlertSink sink);
     void HandleEvent(const Event& event) override;
     void PrintSummary() const;  // сводка в конце прогона
     void OnSkipped() override;
@@ -24,12 +25,17 @@ class Agent : public IEventHandler {
     void OnBroken() override;
 
  private:
+    void PrintContextOnce();
     RingBuffer<WindowEntry, kWindowCapacity> window_;
-    bool quiet_ = false;
+    EntityModel model_;
     RuleEngine engine_;
-    std::size_t event_cnt_ = 0;
     std::vector<std::pair<std::string, std::size_t>> all_types_;
     std::vector<const nano_edr::IRule*> fired;
+    bool quiet_ = false;
+    uint64_t dedup_period_ms_{};
+    std::size_t suppressed_{};
+    bool print_context=false;
+    std::size_t event_cnt_ = 0;
     std::size_t skipped_line_ = 0;
     std::size_t broken_line_ = 0;
     std::size_t tick_ = 0;  //чтобы работал тик
