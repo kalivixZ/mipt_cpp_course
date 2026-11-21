@@ -18,6 +18,7 @@ int main(int argc, char** argv) {
     bool file = false;
     std::string pid;
     bool is_pid=false;
+    bool is_copies=false;
     Options options{};
     for (int i = 1; i < argc; i++) {
         const std::string arg = argv[i];
@@ -58,6 +59,8 @@ int main(int argc, char** argv) {
                 return 2;
             }
             options.out = path;
+        }else if(arg=="--copies"){
+            is_copies=true;
         }else {
             if (arg.starts_with("--") || !options.path.empty()) {
                 std::print(stderr, "неизвестная опция: {}\n", arg);
@@ -80,7 +83,7 @@ int main(int argc, char** argv) {
             std::print(stderr, "[WARN] dedup_period_ms не разбирается: {}\n", text);
             dedup_period_ms = 10000;
         }
-        nano_edr::Agent agent(options.quiet, dedup_period_ms);
+        nano_edr::Agent agent(options.quiet, is_copies,dedup_period_ms);
         nano_edr::PidFilter filter_bef_agent(&agent,pid);
         std::unique_ptr<nano_edr::IEventSource> source;
 

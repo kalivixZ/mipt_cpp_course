@@ -44,15 +44,33 @@ Timestamp ParseTimestamp(const EventParts& parts) {
 }
 
 Event::Event(const EventParts& parts)
-    : ts_(ParseTimestamp(parts)),
+    : ts_(Validate(parts.ts, parts.type)),
       raw_ts_(parts.ts),
       type_(parts.type),
       event_type_(EventTypeFromString(parts.type)),
       pid_(parts.pid),
-      fields_(parts.fields) {
-    if (type_.empty()) {
+      fields_(parts.fields) {}
+
+Event::Event(EventParts&& parts){
+    ts_=Validate(parts.ts, parts.type);
+    raw_ts_=std::move(parts.ts);
+    event_type_=EventTypeFromString(parts.type);
+    type_=std::move(parts.type);
+    pid_=std::move(parts.pid);
+    fields_=std::move(parts.fields);
+}
+
+Timestamp Event::Validate(const std::string& raw_ts,const std::string& type){
+    if (type.empty()) {
         throw std::invalid_argument("empty type");
     }
+    
+    uint64_t temp_fallback;
+    const auto [ptr, ec] = std::from_chars(raw_ts.data(), raw_ts.data() + raw_ts.size(), temp_fallback);
+    if (ec != std::errc() || (ptr != raw_ts.data() + raw_ts.size())) {
+        throw std::invalid_argument("invalid ts: " + raw_ts);
+    }
+    return Timestamp{temp_fallback};
 }
 
 std::string ToString(const Event& event) {

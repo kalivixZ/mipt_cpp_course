@@ -3,12 +3,15 @@
 #include <print>
 #include <algorithm>
 #include "agent_rules.h"
+#include "copy_stats.h"
 #include "event.h"
 #include "dedup_sink.h"
+#include "window_entry.h"
 namespace nano_edr {
-Agent::Agent(bool quiet, uint64_t dedup_period_ms)
+Agent::Agent(bool quiet, bool copies, uint64_t dedup_period_ms)
     : engine_(BuildAgentRules(&model_)),
       quiet_(quiet),
+      copies_(copies),
       dedup_period_ms_(dedup_period_ms) {
     engine_.SetModel(&model_);
 }
@@ -16,7 +19,11 @@ void Agent::HandleEvent(const Event& event) {
     print_context=false;
     model_.Observe(event);
     engine_.ProcessEvent(event,&fired);
-    WindowEntry entry{event.ts(), event.type(), event.pid()};
+    WindowEntry entry;
+    entry.ts = event.ts();
+    entry.type = event.type();
+    entry.pid = event.pid();
+    window_.PushBack(entry);
     event_cnt_++;
     bool flag = false;
     for (auto& [type, cnt] : all_types_) {
@@ -51,6 +58,11 @@ void Agent::PrintContextOnce() {
 }
 
 void Agent::PrintSummary() const {
+    if (copies_){
+        std::print("[COPY] строк события скопировано {}, перемещено {}\n",copy_stats().event_strings_copied, copy_stats().event_strings_moved);
+        std::print("[COPY] записей WindowEntry скопировано {}, перемещено {}\n",copy_stats().window_copied,copy_stats().window_moved);
+        std::print("[COPY] событий скопировано в детекты {}\n",copy_stats().evidence_copied);
+        std::print("[COPY] копий всего {}\n",copy_stats().total());
     if (quiet_) {
         return;
     }
