@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
         if (edr.Flush() != EDR_OK) {
         std::print(stderr, "[WARN] детекты не отправлены\n");
         }
-        if (!options.quiet) {
+        if (!options.quiet || is_copies) {
             agent.PrintSummary();
             auto result=filter_bef_agent.filtered();
             std::print("отфильтровано событий: {}\n",result);

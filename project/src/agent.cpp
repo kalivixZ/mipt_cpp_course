@@ -36,7 +36,6 @@ void Agent::HandleEvent(const Event& event) {
     if (!flag) {
         all_types_.push_back({event.type(), 1});
     }
-    window_.PushBack(entry);
 }
 void Agent::Subscribe(AlertSink sink) {
     FanOutSink all;
@@ -63,6 +62,7 @@ void Agent::PrintSummary() const {
         std::print("[COPY] записей WindowEntry скопировано {}, перемещено {}\n",copy_stats().window_copied,copy_stats().window_moved);
         std::print("[COPY] событий скопировано в детекты {}\n",copy_stats().evidence_copied);
         std::print("[COPY] копий всего {}\n",copy_stats().total());
+    }
     if (quiet_) {
         return;
     }
