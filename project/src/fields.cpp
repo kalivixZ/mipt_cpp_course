@@ -1,8 +1,9 @@
 #include "fields.h"
 
 #include <stdexcept>
-#include "field_traits.h"
+
 #include "event.h"
+#include "field_traits.h"
 #include "text.h"
 namespace nano_edr {
 
@@ -39,14 +40,12 @@ bool GetIntField(const Event& event, const std::string& key, uint64_t* out) {
         return false;
     }  //если поле отсутствует
     return FieldTraits<uint64_t>::Parse(*p, out);
-
 }
 
 uint64_t GetIntField(const Event& event, const std::string& key,
                      uint64_t fallback) {
-    auto new_fallback=GetFieldOr<uint64_t>(event,key,fallback);
+    auto new_fallback = GetFieldOr<uint64_t>(event, key, fallback);
     return new_fallback;
-    
 }
 
 bool IsProcessStart(const Event& event) {

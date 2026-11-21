@@ -31,11 +31,12 @@ class DedupSink {
     DedupSink(AlertSink inner, uint64_t period_ms, std::size_t* suppressed);
 
     void operator()(const Detection& detection);
-private:
+
+ private:
     AlertSink inner_;
     uint64_t period_ms_;
     std::size_t* suppressed_;
-    std::map<std::pair<std::string,std::string>, uint64_t> notes_; //rule,pid,ms
+    std::map<std::pair<std::string, std::string>, uint64_t> notes_;  //rule,pid,ms
 };
 
 }  // namespace nano_edr

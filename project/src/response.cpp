@@ -1,12 +1,13 @@
+#include "response.h"
+
+#include <print>
 #include <string>
 
 #include "detection.h"
 #include "entity_model.h"
 #include "event.h"
-#include "os_handle.h"
-#include "response.h"
 #include "fields.h"
-#include <print>
+#include "os_handle.h"
 
 namespace nano_edr {
 
@@ -16,7 +17,7 @@ ResponsePlanner::ResponsePlanner(const EntityModel* model,
                                  std::string quarantine_dir)
     : model_(model), quarantine_dir_(quarantine_dir) {}
 
-bool SystemPath(const std::string& path){
+bool SystemPath(const std::string& path) {
     std::string path_toupper;
     for (std::size_t i = 0; i < path.size(); i++) {
         char symbol = path[i];
@@ -35,25 +36,27 @@ ResponsePlan ResponsePlanner::Plan(const Detection& detection) const {
     for (const std::string& name : detection.actions) {
         if (name == "kill_process") {
             for (std::size_t i = tree.size(); i > 0; --i) {
-            const std::string& pid = tree[i - 1];
-            Action action;
-            action.kind = ActionKind::kKillProcess;
-            action.pid = pid;
-            // запись есть у каждого процесса из tree;
-            // start — ноль, если запуска процесса модель не видела
-            action.expected_start = model_->FindProcess(pid)->start;
-            action.reason = detection.rule;
-            if (pid != detection.pid) {
-                action.reason += ", потомок " + detection.pid;
-            }
-            plan.Add(std::move(action));
+                const std::string& pid = tree[i - 1];
+                Action action;
+                action.kind = ActionKind::kKillProcess;
+                action.pid = pid;
+                // запись есть у каждого процесса из tree;
+                // start — ноль, если запуска процесса модель не видела
+                action.expected_start = model_->FindProcess(pid)->start;
+                action.reason = detection.rule;
+                if (pid != detection.pid) {
+                    action.reason += ", потомок " + detection.pid;
+                }
+                plan.Add(std::move(action));
             }
         } else if (name == "quarantine_source") {
-            if (model_==nullptr){continue;}
+            if (model_ == nullptr) {
+                continue;
+            }
             const FileRecord* source = model_->FindSpawnSource(detection.pid);
             if (source != nullptr) {
                 if (SystemPath(source->path)) {
-                continue;
+                    continue;
                 }
                 Action action;
                 action.kind = ActionKind::kQuarantineFile;
@@ -61,11 +64,13 @@ ResponsePlan ResponsePlanner::Plan(const Detection& detection) const {
                 action.to = QuarantinePath(source->path, detection.pid);
                 action.reason = detection.rule + ", источник запуска";
                 if (action.to.empty()) {
-                continue;
+                    continue;
                 }
                 plan.Add(std::move(action));
-            }else{continue;}
-        }else if (name == "quarantine_image") {
+            } else {
+                continue;
+            }
+        } else if (name == "quarantine_image") {
             if (model_ == nullptr) {
                 continue;
             }
@@ -83,12 +88,12 @@ ResponsePlan ResponsePlanner::Plan(const Detection& detection) const {
                 continue;
             }
             plan.Add(std::move(action));
-        }else if (name == "delete_dropped") {
+        } else if (name == "delete_dropped") {
             if (model_ == nullptr) {
                 continue;
             }
             const std::vector<std::string> tree =
-            model_->GetProcessTree(detection.pid);
+                model_->GetProcessTree(detection.pid);
             for (const std::string& pid : tree) {
                 const auto files = model_->GetFilesCreatedBy(pid, true);
                 for (const std::string& path : files) {
@@ -99,11 +104,11 @@ ResponsePlan ResponsePlanner::Plan(const Detection& detection) const {
                     Action action;
                     action.kind = ActionKind::kDeleteFile;
                     action.path = file->path;
-                    action.reason = detection.rule + ", принесен "+pid;
+                    action.reason = detection.rule + ", принесен " + pid;
                     plan.Add(std::move(action));
                 }
             }
-        }else if (name == "delete_evidence") {
+        } else if (name == "delete_evidence") {
             for (const auto& event : detection.evidence) {
                 if (event == nullptr) {
                     continue;
@@ -123,18 +128,19 @@ ResponsePlan ResponsePlanner::Plan(const Detection& detection) const {
                 action.reason = detection.rule + ", файл из детекта";
                 plan.Add(std::move(action));
             }
-    }
+        }
         // незнакомое имя пропускается
     }
     return plan;
 }
 
-std::string ResponsePlanner::QuarantinePath(const std::string&path,const std::string&pid) const {
-    if (quarantine_dir_.empty()){return "";}
-    else{
+std::string ResponsePlanner::QuarantinePath(const std::string& path, const std::string& pid) const {
+    if (quarantine_dir_.empty()) {
+        return "";
+    } else {
         const std::size_t pos = path.find_last_of('\\');
-        const std::string file_name=path.substr(pos+1);
-        return quarantine_dir_+'\\'+pid+'-'+file_name;
+        const std::string file_name = path.substr(pos + 1);
+        return quarantine_dir_ + '\\' + pid + '-' + file_name;
     }
 }
 // --- Responder -------------------------------------------------------------
@@ -164,7 +170,8 @@ void Responder::Execute(const ResponsePlan& plan) {
             std::print("[PLAN] {}\n", ToString(action));
             continue;
         }
-        if (action.kind==ActionKind::kKillProcess){Kill(action);
+        if (action.kind == ActionKind::kKillProcess) {
+            Kill(action);
         } else if (action.kind == ActionKind::kQuarantineFile) {
             MoveToQuarantine(action);
         } else if (action.kind == ActionKind::kDeleteFile) {
@@ -172,6 +179,5 @@ void Responder::Execute(const ResponsePlan& plan) {
         }
     }
 }
-
 
 }  // namespace nano_edr

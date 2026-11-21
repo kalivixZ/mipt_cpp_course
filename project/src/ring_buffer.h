@@ -28,12 +28,11 @@
 #ifndef NANO_EDR_RING_BUFFER_H
 #define NANO_EDR_RING_BUFFER_H
 
+#include <array>
 #include <cstddef>
 
-#include <array>
-
 namespace nano_edr {
-template <typename T,std::size_t N>
+template <typename T, std::size_t N>
 class RingBuffer {
  public:
     // Обход в логическом порядке — от самого старого к самому новому.
@@ -43,86 +42,86 @@ class RingBuffer {
     // намеренно.
     class Iterator {
      public:
-        Iterator (const RingBuffer* buffer, std::size_t index)
-        : buffer_ (buffer),index_ (index){}   
-        const T& operator*() const{
+        Iterator(const RingBuffer* buffer, std::size_t index)
+            : buffer_(buffer), index_(index) {}
+        const T& operator*() const {
             return buffer_->operator[](index_);
         }
-        Iterator& operator++(){
+        Iterator& operator++() {
             ++index_;
             return *this;
         }
-        bool operator!=(const Iterator& other) const{
-            return index_!=other.index_;
+        bool operator!=(const Iterator& other) const {
+            return index_ != other.index_;
         }
-    private:
-        const RingBuffer* buffer_=nullptr;
-        std::size_t index_=0;
+
+     private:
+        const RingBuffer* buffer_ = nullptr;
+        std::size_t index_ = 0;
     };
 
     // Дописывает элемент. Если буфер полон, самый старый затирается — окно,
     // а не архив.
-    void PushBack(const T& value){
-        if (full()){
-            buffer_[head_]=value;
-            head_=(++head_)%capacity();
-        }
-        else{
-            buffer_[(head_+size_)%capacity()]=value;
+    void PushBack(const T& value) {
+        if (full()) {
+            buffer_[head_] = value;
+            head_ = (++head_) % capacity();
+        } else {
+            buffer_[(head_ + size_) % capacity()] = value;
             size_++;
         }
     }
-    void PushBack(T&& value){
-        if (full()){
-            buffer_[head_]=std::move(value);
-            head_=(++head_)%capacity();
-        }
-        else{
-            buffer_[(head_+size_)%capacity()]=std::move(value);
+    void PushBack(T&& value) {
+        if (full()) {
+            buffer_[head_] = std::move(value);
+            head_ = (++head_) % capacity();
+        } else {
+            buffer_[(head_ + size_) % capacity()] = std::move(value);
             size_++;
         }
     }
 
-    void Clear(){
+    void Clear() {
         buffer_.fill(T{});
-        head_=0;
-        size_=0;
+        head_ = 0;
+        size_ = 0;
     }
 
-    std::size_t size() const{
+    std::size_t size() const {
         return size_;
     }
-    static constexpr std::size_t capacity(){
+    static constexpr std::size_t capacity() {
         return N;
     }
-    bool empty() const{
-        return size_==0;
+    bool empty() const {
+        return size_ == 0;
     }
-    bool full() const{
-        return size_==capacity();
+    bool full() const {
+        return size_ == capacity();
     }
 
     // По логическому индексу: 0 — самый старый.
-    const T& operator[](std::size_t index) const{
-        return buffer_[(index+head_)%capacity()];
+    const T& operator[](std::size_t index) const {
+        return buffer_[(index + head_) % capacity()];
     }
 
     // Самый новый элемент. Вызывать на пустом буфере нельзя — это ошибка
     // в коде вызывающего, а не случай, который надо обрабатывать.
-    const T& back() const{
-        return buffer_[(size_+head_-1)%capacity()];
+    const T& back() const {
+        return buffer_[(size_ + head_ - 1) % capacity()];
     }
 
-    Iterator begin() const{
-        return Iterator(this,0);
+    Iterator begin() const {
+        return Iterator(this, 0);
     }
-    Iterator end() const{
-        return Iterator(this,size_);
+    Iterator end() const {
+        return Iterator(this, size_);
     }
+
  private:
-    std::array<T,N> buffer_;
+    std::array<T, N> buffer_;
     std::size_t head_ = 0;
-    std::size_t size_=0;
+    std::size_t size_ = 0;
 };
 
 }  // namespace nano_edr

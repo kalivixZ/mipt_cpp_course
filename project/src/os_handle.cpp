@@ -49,5 +49,4 @@ os_status OsHandle::ProcessInfo(uint32_t pid, os_process_info* out) {
     return os_process_get_info(handle_, pid, out);
 }
 
-
 }  // namespace nano_edr

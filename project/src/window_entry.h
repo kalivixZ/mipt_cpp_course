@@ -76,13 +76,13 @@ struct WindowEntry {
     ~WindowEntry() = default;
 
     WindowEntry(const WindowEntry& other)
-    : ts(other.ts), type(other.type), pid(other.pid) {
-    ++copy_stats().window_copied;
+        : ts(other.ts), type(other.type), pid(other.pid) {
+        ++copy_stats().window_copied;
     }
-    WindowEntry& operator=(const WindowEntry& other){
-        (*this).ts=other.ts;
-        (*this).type=other.type;
-        (*this).pid=other.pid;
+    WindowEntry& operator=(const WindowEntry& other) {
+        (*this).ts = other.ts;
+        (*this).type = other.type;
+        (*this).pid = other.pid;
         ++copy_stats().window_copied;
         return *this;
     }
@@ -94,11 +94,13 @@ struct WindowEntry {
         other.pid = "";
         ++copy_stats().window_moved;
     }
-    WindowEntry& operator=(WindowEntry&& other) noexcept{
-        (*this).ts=std::move(other.ts);
-        (*this).type=std::move(other.type);
-        (*this).pid=std::move(other.pid);
-        other.ts.ms=0;other.type="";other.pid="";
+    WindowEntry& operator=(WindowEntry&& other) noexcept {
+        (*this).ts = std::move(other.ts);
+        (*this).type = std::move(other.type);
+        (*this).pid = std::move(other.pid);
+        other.ts.ms = 0;
+        other.type = "";
+        other.pid = "";
         ++copy_stats().window_moved;
         return *this;
     }

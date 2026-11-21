@@ -1,45 +1,46 @@
 #pragma once
 #include <vector>
-#include "ring_buffer.h"
+
 #include "agent_rules.h"
 #include "event_list.h"
 #include "event_source.h"
+#include "response.h"
+#include "ring_buffer.h"
 #include "rule.h"
 #include "rule_engine.h"
 #include "window_entry.h"
-#include "response.h"
 namespace nano_edr {
-static std::size_t first_print=0;
+static std::size_t first_print = 0;
 class Agent : public IEventHandler {
  public:
-   static constexpr std::size_t kWindowCapacity = 256;
-    explicit Agent(bool quiet,bool copies,uint64_t dedup_period_ms=10000);
+    static constexpr std::size_t kWindowCapacity = 256;
+    explicit Agent(bool quiet, bool copies, uint64_t dedup_period_ms = 10000);
     void Subscribe(AlertSink sink);
     void HandleEvent(const Event& event) override;
     void EnableResponse(OsHandle* os, bool dry_run,
-                    const std::string& quarantine_dir);
+                        const std::string& quarantine_dir);
     void PrintSummary() const;  // сводка в конце прогона
     void OnSkipped() override;
     void OnTick() override;
     void OnBroken() override;
 
  private:
-   void PrintContextOnce();
-   RingBuffer<WindowEntry, kWindowCapacity> window_;
-   EntityModel model_;
-   RuleEngine engine_;
-   std::vector<std::pair<std::string, std::size_t>> all_types_;
-   std::vector<const nano_edr::IRule*> fired;
-   bool quiet_ = false;
-   bool copies_=false;
-   uint64_t dedup_period_ms_{};
-   std::size_t suppressed_{};
-   bool print_context=false;
-   std::unique_ptr<ResponsePlanner> planner_{};
-   std::unique_ptr<Responder> responder_{};
-   std::size_t event_cnt_ = 0;
-   std::size_t skipped_line_ = 0;
-   std::size_t broken_line_ = 0;
-   std::size_t tick_ = 0;  //чтобы работал тик
+    void PrintContextOnce();
+    RingBuffer<WindowEntry, kWindowCapacity> window_;
+    EntityModel model_;
+    RuleEngine engine_;
+    std::vector<std::pair<std::string, std::size_t>> all_types_;
+    std::vector<const nano_edr::IRule*> fired;
+    bool quiet_ = false;
+    bool copies_ = false;
+    uint64_t dedup_period_ms_{};
+    std::size_t suppressed_{};
+    bool print_context = false;
+    std::unique_ptr<ResponsePlanner> planner_{};
+    std::unique_ptr<Responder> responder_{};
+    std::size_t event_cnt_ = 0;
+    std::size_t skipped_line_ = 0;
+    std::size_t broken_line_ = 0;
+    std::size_t tick_ = 0;  //чтобы работал тик
 };
 }  // namespace nano_edr
