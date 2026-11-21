@@ -1,29 +1,23 @@
 #include "agent.h"
-
+#include "alert_sink.h"
 #include <print>
 #include <algorithm>
 #include "agent_rules.h"
 #include "event.h"
-#include "event_list.h"
+#include "dedup_sink.h"
 namespace nano_edr {
-Agent::Agent(bool quiet)
-    :quiet_(quiet),
-    engine_() { RegisterAgentRules(&engine_); }
+Agent::Agent(bool quiet, uint64_t dedup_period_ms)
+    : engine_(BuildAgentRules(&model_)),
+      quiet_(quiet),
+      dedup_period_ms_(dedup_period_ms) {
+    engine_.SetModel(&model_);
+}
 void Agent::HandleEvent(const Event& event) {
+    print_context=false;
+    model_.Observe(event);
+    engine_.ProcessEvent(event,&fired);
     WindowEntry entry{event.ts(), event.type(), event.pid()};
-    std::size_t detect_cnt;
     event_cnt_++;
-    detect_cnt = engine_.ProcessEvent(event, &fired);
-    if (detect_cnt != 0 && !quiet_) {
-        for (std::size_t i = window_.size()- std::min(window_.size(),std::size_t(2));i<window_.size();++i){
-            const WindowEntry& entry = window_[i];
-            std::print("[CTX] -{}: {} {} pid={}\n",window_.size()-i, entry.ts.ms, entry.type, entry.pid);
-        }
-    }
-    for (const auto& detected : fired) {
-        std::print("[DETECT] {}  {}  ts={} pid={}\n", SeverityName(detected->severity()), detected->id(), event.raw_ts(), event.pid());
-    }
-    fired.clear();
     bool flag = false;
     for (auto& [type, cnt] : all_types_) {
         if (event.type() == type) {
@@ -36,6 +30,24 @@ void Agent::HandleEvent(const Event& event) {
         all_types_.push_back({event.type(), 1});
     }
     window_.PushBack(entry);
+}
+void Agent::Subscribe(AlertSink sink) {
+    FanOutSink all;
+    all.Add([this](const Detection&) { PrintContextOnce(); });
+    all.Add(std::move(sink));
+    engine_.Subscribe(DedupSink(std::move(all), dedup_period_ms_, &suppressed_));
+}
+
+void Agent::PrintContextOnce() {
+    if (print_context){return;}
+    print_context=true;
+    if (!quiet_) {
+        for (std::size_t i = window_.size()- std::min(window_.size(),std::size_t(2));i<window_.size();++i){
+            const WindowEntry& entry = window_[i];
+            std::print("[CTX] -{}: {} {} pid={}\n",window_.size()-i, entry.ts.ms, entry.type, entry.pid);
+        }
+    }
+
 }
 
 void Agent::PrintSummary() const {
@@ -51,7 +63,11 @@ void Agent::PrintSummary() const {
         std::print("{}  {}\n", engine_.rule(i).id(), engine_.rule(i).hits());
     }
     std::print("[STAT] в окне {} из {} мест\n",window_.size(),window_.capacity());
-}
+    std::print("[STAT] в модели процессов {}, файлов {}\n",model_.process_count(),model_.file_count());
+    if (suppressed_!=0){
+        std::print("[STAT] подавлено дубликатов {} (срок {} мс\n",suppressed_,dedup_period_ms_);
+    }
+}   
 
 void Agent::OnSkipped() {
     ++skipped_line_;

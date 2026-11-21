@@ -5,29 +5,36 @@
 #include "agent.h"
 #include "file_source.h"
 #include "os_source.h"
+#include "alert_sink.h"
+#include "edr_handle.h"
+#include "field_traits.h"
+struct Options{
+    std::string out; //имя файла
+    bool quiet;
+    std::string path; //log path
 
+};
 int main(int argc, char** argv) {
-    bool quiet = false;
     bool file = false;
     std::string pid;
     bool is_pid=false;
-    std::string log_path;
+    Options options{};
     for (int i = 1; i < argc; i++) {
         const std::string arg = argv[i];
         if (arg == "--quiet") {
-            quiet = true;
+            options.quiet = true;
         } else if (arg == "--file") {
             file = true;
-            if (i + 1 >= argc || !log_path.empty()) {
+            if (i + 1 >= argc || !options.path.empty()) {
                 std::print(stderr, "не задан путь\n");
                 return 2;
             }
-            const std::string path = argv[++i];
-            if (path.starts_with("--")) {
-                std::print(stderr, "неизвестная опция: {}\n", path);
+            const std::string log_path = argv[++i];
+            if (log_path.starts_with("--")) {
+                std::print(stderr, "неизвестная опция: {}\n", log_path);
                 return 2;
             }
-            log_path = path;
+            options.path = log_path;
         } else if (arg=="--pid"){
             if (i + 1 >= argc) {
                 std::print(stderr, "не задан pid\n");
@@ -38,36 +45,66 @@ int main(int argc, char** argv) {
                 std::print(stderr,"нет аргумента после опции --pid\n");
                 return 2;
             }
-        is_pid=true;
+            is_pid=true;
+        }else if(arg=="--out"){
+            if (i + 1 >= argc) {
+                std::print(stderr, "не задано имя файла\n");
+                return 2;
+            }
+            const std::string path = argv[++i];
+
+            if (path.starts_with("--") || path.empty()) {
+                std::print(stderr, "не задано имя файла\n");
+                return 2;
+            }
+            options.out = path;
         }else {
-            if (arg.starts_with("--") || !log_path.empty()) {
+            if (arg.starts_with("--") || !options.path.empty()) {
                 std::print(stderr, "неизвестная опция: {}\n", arg);
                 return 2;
             }
-            log_path = arg;
+            options.path = arg;
         }
     }
-    if (log_path.empty()) {
+    if (options.path.empty()) {
         std::print(stderr, "использование: nano-edr <журнал.log>\n");
         return 2;
     }
+
     //агент и разделение на источники
     try {
-        nano_edr::Agent agent(quiet);
-
+        nano_edr::EdrHandle edr(options.path);
+        const std::string text = edr.Config("dedup_period_ms", "10000");
+        uint64_t dedup_period_ms = 0;
+        if (!nano_edr::FieldTraits<uint64_t>::Parse(text, &dedup_period_ms)) {
+            std::print(stderr, "[WARN] dedup_period_ms не разбирается: {}\n", text);
+            dedup_period_ms = 10000;
+        }
+        nano_edr::Agent agent(options.quiet, dedup_period_ms);
         nano_edr::PidFilter filter_bef_agent(&agent,pid);
         std::unique_ptr<nano_edr::IEventSource> source;
 
         if (file) {
-            source = std::make_unique<nano_edr::FileSource>(log_path);
+            source = std::make_unique<nano_edr::FileSource>(options.path);
         } else {
-            source = std::make_unique<nano_edr::OsSource>(log_path);
+            source = std::make_unique<nano_edr::OsSource>(options.path);
         }
+        nano_edr::FanOutSink targets;
+        targets.Add(nano_edr::ConsoleSink());
+        targets.Add(nano_edr::EdrSink(&edr));
+        if (!options.out.empty()) {
+            targets.Add(nano_edr::FileSink(options.out));
+        }
+        agent.Subscribe(std::move(targets));
+
         if (is_pid) {source->Run(&filter_bef_agent);
         }else{
         source->Run(&agent);
         }
-        if (!quiet) {
+        if (edr.Flush() != EDR_OK) {
+        std::print(stderr, "[WARN] детекты не отправлены\n");
+        }
+        if (!options.quiet) {
             agent.PrintSummary();
             auto result=filter_bef_agent.filtered();
             std::print("отфильтровано событий: {}\n",result);
