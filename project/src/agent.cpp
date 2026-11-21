@@ -23,7 +23,7 @@ void Agent::HandleEvent(const Event& event) {
     entry.ts = event.ts();
     entry.type = event.type();
     entry.pid = event.pid();
-    window_.PushBack(entry);
+    window_.PushBack(std::move(entry));
     event_cnt_++;
     bool flag = false;
     for (auto& [type, cnt] : all_types_) {

@@ -72,6 +72,16 @@ class RingBuffer {
             size_++;
         }
     }
+    void PushBack(T&& value){
+        if (full()){
+            buffer_[head_]=std::move(value);
+            head_=(++head_)%capacity();
+        }
+        else{
+            buffer_[(head_+size_)%capacity()]=std::move(value);
+            size_++;
+        }
+    }
 
     void Clear(){
         buffer_.fill(T{});
