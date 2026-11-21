@@ -164,7 +164,12 @@ void Responder::Execute(const ResponsePlan& plan) {
             std::print("[PLAN] {}\n", ToString(action));
             continue;
         }
-        // на шаге 6 здесь действие исполняется
+        if (action.kind==ActionKind::kKillProcess){Kill(action)
+        } else if (action.kind == ActionKind::kQuarantineFile) {
+            MoveToQuarantine(action);
+        } else if (action.kind == ActionKind::kDeleteFile) {
+            Delete(action);
+        }
     }
 }
 

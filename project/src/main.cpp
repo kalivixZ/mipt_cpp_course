@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
             options.out = path;
         }else if(arg=="--copies"){
             is_copies=true;
-        }else if(arg=="--dry--run"){
+        }else if(arg=="--dry-run"){
             options.dry_run=true;
         }else {
             if (arg.starts_with("--") || !options.path.empty()) {
@@ -101,10 +101,10 @@ int main(int argc, char** argv) {
         if (!options.out.empty()) {
             targets.Add(nano_edr::FileSink(options.out));
         }
+        
+        agent.Subscribe(std::move(targets));
         agent.EnableResponse(source->os(), options.dry_run,
                      edr.Config("quarantine_dir", "C:\\quarantine"));
-
-        agent.Subscribe(std::move(targets));
 
         if (is_pid) {source->Run(&filter_bef_agent);
         }else{

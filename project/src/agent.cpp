@@ -18,6 +18,10 @@ Agent::Agent(bool quiet, bool copies, uint64_t dedup_period_ms)
 void Agent::HandleEvent(const Event& event) {
     print_context=false;
     model_.Observe(event);
+    if (responder_ != nullptr && responder_->Recognize(event)) {
+        // запись в window_, как для обычного события
+        return;  // до ProcessEvent своё событие не доходит
+    }
     engine_.ProcessEvent(event,&fired);
     WindowEntry entry;
     entry.ts = event.ts();
@@ -89,6 +93,11 @@ void Agent::PrintSummary() const {
     std::print("[STAT] в модели процессов {}, файлов {}\n",model_.process_count(),model_.file_count());
     if (suppressed_!=0){
         std::print("[STAT] подавлено дубликатов {} (срок {} мс\n",suppressed_,dedup_period_ms_);
+    }
+    if (responder_){
+        std::print("[STAT] действий запланировано {}, повторов отброшено{}\n",responder_->stats().planned,responder_->stats().skipped_repeat());
+        std::print("[STAT] завершено процессов {}, изолировано файлов {}, удалено файлов {}\n",responder_->stats().killed, responder_->stats().quarantined, responder_->stats().deleted);
+        std::print("[STAT] своих событий {}\n", responder_->stats().own_events);
     }
 }   
 
