@@ -37,6 +37,17 @@ void Agent::HandleEvent(const Event& event) {
         all_types_.push_back({event.type(), 1});
     }
 }
+
+void Agent::EnableResponse(OsHandle* os, bool dry_run,
+                           const std::string& quarantine_dir) {
+    planner_ = std::make_unique<ResponsePlanner>(&model_, quarantine_dir);
+    responder_ = std::make_unique<Responder>(os, dry_run);
+    engine_.Subscribe([this](const Detection& detection) {
+        responder_->Execute(planner_->Plan(detection));
+    });
+}
+
+
 void Agent::Subscribe(AlertSink sink) {
     FanOutSink all;
     all.Add([this](const Detection&) { PrintContextOnce(); });

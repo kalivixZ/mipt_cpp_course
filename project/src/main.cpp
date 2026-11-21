@@ -9,9 +9,10 @@
 #include "edr_handle.h"
 #include "field_traits.h"
 struct Options{
-    std::string out; //имя файла
-    bool quiet;
-    std::string path; //log path
+    std::string out{}; //имя файла
+    bool quiet=false;
+    std::string path{}; //log path
+    bool dry_run=false;
 
 };
 int main(int argc, char** argv) {
@@ -61,6 +62,8 @@ int main(int argc, char** argv) {
             options.out = path;
         }else if(arg=="--copies"){
             is_copies=true;
+        }else if(arg=="--dry--run"){
+            options.dry_run=true;
         }else {
             if (arg.starts_with("--") || !options.path.empty()) {
                 std::print(stderr, "неизвестная опция: {}\n", arg);
@@ -98,6 +101,9 @@ int main(int argc, char** argv) {
         if (!options.out.empty()) {
             targets.Add(nano_edr::FileSink(options.out));
         }
+        agent.EnableResponse(source->os(), options.dry_run,
+                     edr.Config("quarantine_dir", "C:\\quarantine"));
+
         agent.Subscribe(std::move(targets));
 
         if (is_pid) {source->Run(&filter_bef_agent);

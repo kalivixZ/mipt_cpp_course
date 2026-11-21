@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <stdexcept>
+#include "copy_stats.h"
 namespace nano_edr {
 
 EventType EventTypeFromString(const std::string& type) {
@@ -49,10 +50,13 @@ Event::Event(const EventParts& parts)
       type_(parts.type),
       event_type_(EventTypeFromString(parts.type)),
       pid_(parts.pid),
-      fields_(parts.fields) {}
+      fields_(parts.fields) {
+        copy_stats().event_strings_copied += 3 + 2 * fields_.size();
+      }
 
 Event::Event(EventParts&& parts){
     ts_=Validate(parts.ts, parts.type);
+    copy_stats().event_strings_moved += 3 + 2 * parts.fields.size();
     raw_ts_=std::move(parts.ts);
     event_type_=EventTypeFromString(parts.type);
     type_=std::move(parts.type);

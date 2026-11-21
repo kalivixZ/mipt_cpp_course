@@ -6,6 +6,7 @@
 #include "os_handle.h"
 #include "response.h"
 #include "fields.h"
+#include <print>
 
 namespace nano_edr {
 
@@ -89,7 +90,7 @@ ResponsePlan ResponsePlanner::Plan(const Detection& detection) const {
             const std::vector<std::string> tree =
             model_->GetProcessTree(detection.pid);
             for (const std::string& pid : tree) {
-                const auto files = model_->GetFilesCreatedBy(detection.pid, true);
+                const auto files = model_->GetFilesCreatedBy(pid, true);
                 for (const std::string& path : files) {
                     const FileRecord* file = model_->FindFile(path);
                     if (file == nullptr || SystemPath(file->path)) {
@@ -140,6 +141,32 @@ std::string ResponsePlanner::QuarantinePath(const std::string&path,const std::st
 
 Responder::Responder(OsHandle* os, bool dry_run) : os_(os), dry_run_(dry_run) {}
 
-void Responder::Execute(const ResponsePlan&) {}
+void Responder::Execute(const ResponsePlan& plan) {
+    for (const Action& action : plan.actions()) {
+        ++stats_.planned;
+
+        // цель, по которой уже отработали: на одном процессе срабатывает
+        // несколько правил
+        bool repeat = false;
+        for (const std::string& target : done_) {
+            if (target == action.target()) {
+                repeat = true;
+                break;
+            }
+        }
+        if (repeat) {
+            ++stats_.skipped_repeat;
+            continue;
+        }
+        done_.push_back(action.target());
+
+        if (dry_run_ || os_ == nullptr) {
+            std::print("[PLAN] {}\n", ToString(action));
+            continue;
+        }
+        // на шаге 6 здесь действие исполняется
+    }
+}
+
 
 }  // namespace nano_edr

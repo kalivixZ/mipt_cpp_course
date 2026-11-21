@@ -25,6 +25,8 @@ void RegisterAgentRule1(RuleEngine* engine) {
         }}));
 
     rule1->AddAction("kill_process");
+    rule1->AddAction("quarantine_source");
+    rule1->AddAction("delete_dropped");
     engine->AddRule(std::move(rule1));
     }
 void RegisterAgentRule2(RuleEngine* engine) {
@@ -80,7 +82,7 @@ void RegisterAgentRule4(RuleEngine* engine) {
             }
         }}));
 
-    rule4->AddAction("quarantine_file");
+    rule4->AddAction("delete_evidence");
     engine->AddRule(std::move(rule4));
     }
 void RegisterAgentRule5(RuleEngine* engine) {
@@ -95,7 +97,8 @@ void RegisterAgentRule5(RuleEngine* engine) {
             FieldEndsWith("to", ".locked")
         }}));
 
-    rule5->AddAction("quarantine_file");
+    rule5->AddAction("kill_process");
+    rule5->AddAction("quarantine_image");
     engine->AddRule(std::move(rule5));
 }
 void RegisterAgentRule6(RuleEngine* engine) {
@@ -132,7 +135,7 @@ void RegisterAgentRule6(RuleEngine* engine) {
                 FieldContains("to", "\\Desktop\\")))));
 
     mass_write->AddAction("kill_process");
-    mass_write->AddAction("quarantine_file");
+    mass_write->AddAction("quarantine_image");
     engine->AddRule(std::move(mass_write));
     
 }
@@ -179,7 +182,8 @@ void RegisterAgentRule9(RuleEngine* engine,const EntityModel* model){
         return false;
     });
 dropped->AddAction("kill_process");
-dropped->AddAction("quarantine_file");
+dropped->AddAction("quarantine_source");
+dropped->AddAction("delete_dropped");
 engine->AddRule(std::move(dropped));
 }
 
