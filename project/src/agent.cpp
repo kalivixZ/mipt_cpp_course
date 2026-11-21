@@ -95,7 +95,7 @@ void Agent::PrintSummary() const {
         std::print("[STAT] подавлено дубликатов {} (срок {} мс\n",suppressed_,dedup_period_ms_);
     }
     if (responder_){
-        std::print("[STAT] действий запланировано {}, повторов отброшено{}\n",responder_->stats().planned,responder_->stats().skipped_repeat());
+        std::print("[STAT] действий запланировано {}, повторов отброшено{}\n",responder_->stats().planned,responder_->stats().skipped_repeat);
         std::print("[STAT] завершено процессов {}, изолировано файлов {}, удалено файлов {}\n",responder_->stats().killed, responder_->stats().quarantined, responder_->stats().deleted);
         std::print("[STAT] своих событий {}\n", responder_->stats().own_events);
     }
