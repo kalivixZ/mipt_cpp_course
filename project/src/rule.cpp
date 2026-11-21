@@ -9,7 +9,7 @@ void RuleBase::AddAction(const std::string& action) {
 }
 LambdaRule::LambdaRule(const std::string& id, Severity severity, Predicate predicate)
     : RuleBase(id, severity),
-    predicate_(predicate) {}
+      predicate_(predicate) {}
 bool LambdaRule::Check(const Event& event) {
     if (!predicate_ || !predicate_(event)) {
         return false;
@@ -58,7 +58,7 @@ bool SequenceRule::Check(const Event& event) {
     }
     if (second_->Matches(event)) {
         for (auto i = pending_.begin(); i != pending_.end();) {
-            if (Linked(*i,event)) {
+            if (Linked(*i, event)) {
                 i = pending_.erase(i);
                 CountHit();
                 return true;
@@ -72,17 +72,26 @@ bool SequenceRule::Check(const Event& event) {
     return false;
 }
 // Связаны ли шаги так, как требует правило.
-bool SequenceRule::Linked(const Pending& first, const Event& second) const{
-    if (child_of_prev_){
-        if (model_){
-            const auto* process=model_->FindProcess(second.pid());
-            if (process && process->ppid==first.pid){
-                return true;}else{return false;}
+bool SequenceRule::Linked(const Pending& first, const Event& second) const {
+    if (child_of_prev_) {
+        if (model_) {
+            const auto* process = model_->FindProcess(second.pid());
+            if (process && process->ppid == first.pid) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
         }
-        else{return false;}
-    }else if (same_pid_){
-        if (first.pid==second.pid()){return true;}
-        else{return false;}
-    }else{return true;}
+    } else if (same_pid_) {
+        if (first.pid == second.pid()) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return true;
+    }
 }
 }  // namespace nano_edr
